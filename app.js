@@ -26,7 +26,7 @@ app.use('/api/proposals', proposalRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 
-// Root endpoint
+// Root endpointm
 app.use("/", (req, res) => {
     res.send("Server Working");
 });

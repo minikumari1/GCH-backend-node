@@ -1,6 +1,13 @@
 const Task = require('../models/task');
 
 exports.createTask = async (req, res) => {
+    const { title, description, skillsRequired, domainKnowledge, timeline } = req.body;
+
+    // Check if all required fields are present
+    if (!title || !description || !skillsRequired || !domainKnowledge || !timeline) {
+        return res.status(400).json({ message: 'Task Title, Description, Skills Required, Domain Knowledge, and Task Timeline are required.' });
+    }
+
     const task = new Task(req.body);
     try {
         const savedTask = await task.save();
