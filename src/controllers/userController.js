@@ -4,23 +4,49 @@ const jwt = require('jsonwebtoken');
 exports.register = async (req, res) => {
     const user = new User(req.body);
     try {
+        // Save the user in the database
         const savedUser = await user.save();
-        res.status(201).json(savedUser);
+
+        // Send back success message and user ID
+        res.status(201).json({ message: 'User registered successfully', userId: savedUser._id });
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
 };
 
+
 exports.login = async (req, res) => {
     const { email, password } = req.body;
+    
+    // Log incoming request
+    console.log(`[INFO] Incoming login request: ${JSON.stringify({ email })}`);
+    
     try {
+        // Find user by email
         const user = await User.findOne({ email });
-        if (!user || !(await user.comparePassword(password))) {
+        if (!user) {
+            console.warn(`[WARN] User not found: ${email}`);
             return res.status(401).json({ message: 'Invalid email or password' });
         }
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Check if password matches
+        const isPasswordValid = await user.comparePassword(password);
+        if (!isPasswordValid) {
+            console.warn(`[WARN] Invalid password attempt for user: ${email}`);
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ id: user._id, role: user.role }, 'FSAFDA_432432', { expiresIn: '1h' });
+        
+        // Log successful login
+        console.log(`[INFO] User logged in successfully: ${email}`);
+        
+        // Respond with token
         res.status(200).json({ token });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(`[ERROR] An error occurred during login: ${err.message}`);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
+
